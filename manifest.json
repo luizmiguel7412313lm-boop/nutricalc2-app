@@ -1,0 +1,69 @@
+{
+  "name": "NutriCalc",
+  "short_name": "NutriCalc",
+  "description": "Calcule seu metabolismo basal e consulte valores nutricionais de alimentos",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#764ba2",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
+
+4. service-worker.js (Funciona offline e cache inteligente)
+
+const CACHE_NAME = 'nutricalc-v1';
+const urlsToCache = [
+  './',
+  './index.html',
+  './metabolismo-calculadora.html',
+  './alimento-calculadora.html',
+  './style.css',
+  './manifest.json',
+  './icon-192.svg',
+  './icon-512.svg'
+];
+
+// Install service worker and cache assets
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(urlsToCache))
+      .then(() => self.skipWaiting())
+  );
+});
+
+// Activate and clean old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames
+          .filter(name => name !== CACHE_NAME)
+          .map(name => caches.delete(name))
+      );
+    })
+    .then(() => self.clients.claim())
+  );
+});
+
+// Fetch from cache first, then network
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        return response || fetch(event.request);
+      })
+  );
+});

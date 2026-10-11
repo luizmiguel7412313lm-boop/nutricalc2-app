@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriCalc - Calculadora de Nutrição</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🥗 NutriCalc</h1>
+            <p>Calcule seu metabolismo e consulte valores nutricionais de alimentos</p>
+        </header>
+
+        <div class="cards">
+            <a href="metabolismo-calculadora.html" class="card">
+                <div class="card-icon">🔥</div>
+                <h3>Metabolismo e Macronutrientes</h3>
+                <p>Calcule seu BMR, TDEE e descubra quantas calorias e macronutrientes consumir diariamente baseado no seu objetivo.</p>
+            </a>
+
+            <a href="alimento-calculadora.html" class="card">
+                <div class="card-icon">🍎</div>
+                <h3>Calculadora de Alimentos</h3>
+                <p>Consulte os valores nutricionais (calorias, proteína, carboidratos, gordura) de qualquer alimento pela quantidade desejada.</p>
+            </a>
+        </div>
+
+        <footer>
+            <p>Funciona offline • Instale como app • Nenhum dado coletado</p>
+        </footer>
+    </div>
+
+    <script>
+        // Register service worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('Service Worker registrado:', reg.scope))
+                    .catch(err => console.error('Falha ao registrar Service Worker:', err));
+            });
+        }
+    </script>
+</body>
+</html>

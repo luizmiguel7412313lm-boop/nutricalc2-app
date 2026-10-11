@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Alimentos - NutriCalc</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        header {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+
+        .form-content {
+            background: #f8f9ff;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2);
+            outline: none;
+        }
+
+        .unit-selector {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .unit-selector div {
+            flex: 1;
+        }
+
+        button {
+            width: 100%;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        button:hover::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(to bottom, #f8f9ff, #eef2ff);
+            border-radius: 16px;
+            display: none;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .result h2::before, .result h2::after {
+            content: '';
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+        }
+
+        .result-grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 4px solid;
+            transition: transform 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .result-card.food { border-left-color: #fdcb6e; }
+
+        .result-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .result-value {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+
+        .macros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .macro-item {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .macro-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .macro-label {
+            font-size: 0.9rem;
+            color: #636e72;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .macro-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #2c3e50;
+        }
+
+        .macro-unit {
+            font-size: 0.9rem;
+            color: #636e72;
+        }
+
+        .food-search-tip {
+            background: #e8f4fc;
+            border-left: 4px solid #74b9ff;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.95rem;
+            color: #2d3436;
+        }
+
+        .food-search-tip strong {
+            color: #0984e3;
+        }
+
+        .info-text {
+            margin-top: 25px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            line-height: 1.5;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 480px) {
+            .form-content {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .unit-selector {
+                flex-direction: column;
+            }
+
+            .result-card {
+                padding: 15px;
+            }
+
+            .macros-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .food-search-tip {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Calculadora de Alimentos</h1>
+            <p>Descubra os valores nutricionais dos seus alimentos</p>
+        </header>
+
+        <div class="form-content">
+            <form id="foodForm">
+                <div class="form-group">
+                    <label for="foodName">Nome do Alimento:</label>
+                    <input type="text" id="foodName" placeholder="Ex: arroz, frango, banana, pão..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">Quantidade:</label>
+                    <div class="unit-selector">
+                        <div>
+                            <input type="number" id="quantityValue" min="1" placeholder="Quantidade" required>
+                        </div>
+                        <div>
+                            <select id="quantityUnit" required>
+                                <option value="grams">gramas (g)</option>
+                                <option value="portion">porção</option>
+                                <option value="cup">xícara (chá)</option>
+                                <option value="slice">fatia</option>
+                                <option value="unit">unidade</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit">Calcular Nutrição do Alimento</button>
+            </form>
+        </div>
+
+        <div class="result" id="foodResult">
+            <h2>Informações Nutricionais</h2>
+            <div class="result-card food">
+                <h3>🍎 Alimento Encontrado</h3>
+                <div class="result-item">
+                    <span class="result-label">Nome:</span>
+                    <span class="result-value" id="foodNameResult"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Quantidade consultada:</span>
+                    <span class="result-value" id="foodQuantityResult"></span>
+                </div>
+            </div>
+
+            <div class="result-grid">
+                <div class="result-card">
+                    <h3>🔥 Energia</h3>
+                    <div class="result-item">
+                        <span class="result-label">Calorias:</span>
+                        <span class="result-value" id="foodCalories"></span> kcal
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>🥩 Macronutrientes</h3>
+                    <div class="result-item">
+                        <span class="result-label">Proteína:</span>
+                        <span class="result-value" id="foodProtein"></span> g
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Carboidratos:</span>
+                        <span class="result-value" id="foodCarbs"></span> g
+                    </div>
+                    <div class="result-card">
+                        <span class="result-label">Gordura:</span>
+                        <span class="result-value" id="foodFat"></span> g
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>📊 Por 100g</h3>
+                    <div class="result-item">
+                        <span class="result-label">Calorias:</span>
+                        <span class="result-value" id="foodCaloriesPer100"></span> kcal
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Proteína:</span>
+                        <span class="result-value" id="foodProteinPer100"></span> g
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Carboidratos:</span>
+                        <span class="result-value" id="foodCarbsPer100"></span> g
+                    </div>
+                    <div class="result-card">
+                        <span class="result-label">Gordura:</span>
+                        <span class="result-value" id="foodFatPer100"></span> g
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="food-search-tip">
+            <strong>Dica:</strong> Experimente alimentos como: arroz branco, feijão preto, frango grelhado, ovos, leite integral, pão francês, banana, maçã, salmão, atum, amendoim, aveia, quinoa, batata doce, iogurte natural, queijo branco, etc.
+        </div>
+
+        <div class="info-text">
+            <p><em>Os valores são aproximados baseados em tabelas nutricionais padrão. Para alimentos industrializados, verifique sempre a embalagem.</em></p>
+        </div>
+
+        <div class="footer">
+            Calculadora de Alimentos • Desenvolvido com ❤️
+        </div>
+    </div>
+
+    <script>
+        // Food database (nutrition per 100g)
+        const foodDatabase = {
+            // Grains & Cereals
+            "arroz branco": { calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
+            "arroz integral": { calories: 111, protein: 2.6, carbs: 23, fat: 0.9 },
+            "aveia": { calories: 389, protein: 16.9, carbs: 66, fat: 6.9 },
+            "quinoa": { calories: 120, protein: 4.4, carbs: 21, fat: 1.9 },
+            "pão francês": { calories: 275, protein: 9, carbs: 49, fat: 4.2 },
+            "pão integral": { calories: 247, protein: 13, carbs: 41, fat: 4.2 },
+
+            // Proteins
+            "frango grelhado": { calories: 165, protein: 31, carbs: 0, fat: 3.6 },
+            "peito de frango": { calories: 165, protein: 31, carbs: 0, fat: 3.6 },
+            "coxa de frango": { calories: 209, protein: 18, carbs: 0, fat: 15 },
+            "ovos": { calories: 155, protein: 13, carbs: 1.1, fat: 11 },
+            "ovo cozido": { calories: 155, protein: 13, carbs: 1.1, fat: 11 },
+            "carne bovina magra": { calories: 250, protein: 26, carbs: 0, fat: 17 },
+            "salmão": { calories: 208, protein: 20, carbs: 0, fat: 13 },
+            "atum em água": { calories: 116, protein: 26, carbs: 0, fat: 0.8 },
+            "atum em óleo": { calories: 190, protein: 25, carbs: 0, fat: 9 },
+
+            // Legumes
+            "feijão preto": { calories: 91, protein: 6, carbs: 16, fat: 0.5 },
+            "feijão carioca": { calories: 94, protein: 6.3, carbs: 16, fat: 0.5 },
+            "lentilha": { calories: 116, protein: 9, carbs: 20, fat: 0.4 },
+            "grão-de-bico": { calories: 164, protein: 8.9, carbs: 27, fat: 2.6 },
+
+            // Fruits
+            "banana": { calories: 89, protein: 1.1, carbs: 23, fat: 0.3 },
+            "maçã": { calories: 52, protein: 0.3, carbs: 14, fat: 0.2 },
+            "laranja": { calories: 47, protein: 0.9, carbs: 12, fat: 0.1 },
+            "manga": { calories: 60, protein: 0.8, carbs: 15, fat: 0.4 },
+            "abacaxi": { calories: 50, protein: 0.5, carbs: 13, fat: 0.1 },
+            "morango": { calories: 32, protein: 0.7, carbs: 7.7, fat: 0.3 },
+            "uva": { calories: 69, protein: 0.6, carbs: 18, fat: 0.2 },
+
+            // Vegetables
+            "batata": { calories: 77, protein: 2, carbs: 17, fat: 0.1 },
+            "batata doce": { calories: 86, protein: 1.6, carbs: 20, fat: 0.1 },
+            "cenoura": { calories: 41, protein: 0.9, carbs: 9.6, fat: 0.2 },
+            "brócolis": { calories: 34, protein: 2.8, carbs: 7, fat: 0.4 },
+            "alface": { calories: 15, protein: 1.4, carbs: 2.9, fat: 0.2 },
+            "tomate": { calories: 18, protein: 0.9, carbs: 3.9, fat: 0.2 },
+            "cebola": { calories: 40, protein: 1.1, carbs: 9.3, fat: 0.1 },
+            "alho": { calories: 149, protein: 6.4, carbs: 33, fat: 0.5 },
+
+            // Dairy
+            "leite integral": { calories: 61, protein: 3.2, carbs: 4.8, fat: 3.2 },
+            "leite desnatado": { calories: 35, protein: 3.4, carbs: 5, fat: 0.2 },
+            "iogurte natural": { calories: 59, protein: 3.5, carbs: 5, fat: 3.3 },
+            "queijo branco": { calories: 98, protein: 11, carbs: 3.4, fat: 4.3 },
+            "queijo cheddar": { calories: 403, protein: 25, carbs: 1.3, fat: 33 },
+
+            // Nuts & Seeds
+            "amendoim": { calories: 567, protein: 25.8, carbs: 16, fat: 49 },
+            "amêndoas": { calories: 579, protein: 21.2, carbs: 22, fat: 50 },
+            "nozes": { calories: 654, protein: 15.2, carbs: 14, fat: 65 },
+            "chia": { calories: 486, protein: 16.5, carbs: 42, fat: 31 },
+            "linhaça": { calories: 534, protein: 18.3, carbs: 29, fat: 42 },
+
+            // Others
+            "azeite de oliva": { calories: 884, protein: 0, carbs: 0, fat: 100 },
+            "mel": { calories: 304, protein: 0.3, carbs: 82, fat: 0 },
+            "açúcar": { calories: 387, protein: 0, carbs: 100, fat: 0 },
+            "chocolate amargo 70%": { calories: 598, protein: 7.8, carbs: 46, fat: 42 },
+        };
+
+        // Food Calculator
+        document.getElementById('foodForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const foodNameInput = document.getElementById('foodName').value.trim().toLowerCase();
+            const quantityValue = parseFloat(document.getElementById('quantityValue').value);
+            const quantityUnit = document.getElementById('quantityUnit').value;
+
+            if (!foodNameInput || isNaN(quantityValue) || quantityValue <= 0) {
+                alert('Por favor, preencha todos os campos corretamente.');
+                return;
+            }
+
+            // Find food in database (partial match)
+            let foundFood = null;
+            let foodKey = '';
+
+            for (const key in foodDatabase) {
+                if (key.includes(foodNameInput) || foodNameInput.includes(key)) {
+                    foundFood = foodDatabase[key];
+                    foodKey = key;
+                    break;
+                }
+            }
+
+            if (!foundFood) {
+                alert('Alimento não encontrado na base de dados. Tente outro nome ou seja mais específico.');
+                return;
+            }
+
+            // Convert quantity to grams based on unit
+            let quantityInGrams = quantityValue;
+            switch(quantityUnit) {
+                case 'portion':
+                    // Assume a standard portion is 100g for most foods
+                    quantityInGrams = quantityValue * 100;
+                    break;
+                case 'cup':
+                    // Assume 1 cup ≈ 240ml, but varies by food - using 150g as average
+                    quantityInGrams = quantityValue * 150;
+                    break;
+                case 'slice':
+                    // Assume 1 slice ≈ 30g (bread, cheese, etc.)
+                    quantityInGrams = quantityValue * 30;
+                    break;
+                case 'unit':
+                    // Assume 1 unit ≈ 100g (fruit, egg, etc.)
+                    quantityInGrams = quantityValue * 100;
+                    break;
+                case 'grams':
+                default:
+                    quantityInGrams = quantityValue;
+                    break;
+            }
+
+            // Calculate nutrition for the given quantity
+            const multiplier = quantityInGrams / 100;
+            const calories = foundFood.calories * multiplier;
+            const protein = foundFood.protein * multiplier;
+            const carbs = foundFood.carbs * multiplier;
+            const fat = foundFood.fat * multiplier;
+
+            // Display results
+            document.getElementById('foodNameResult').textContent = foodKey.charAt(0).toUpperCase() + foodKey.slice(1);
+            document.getElementById('foodQuantityResult').textContent = `${quantityValue} ${getUnitLabel(quantityUnit)}`;
+            document.getElementById('foodCalories').textContent = Math.round(calories);
+            document.getElementById('foodProtein').textContent = Math.round(protein * 10) / 10; // 1 decimal
+            document.getElementById('foodCarbs').textContent = Math.round(carbs * 10) / 10; // 1 decimal
+            document.getElementById('foodFat').textContent = Math.round(fat * 10) / 10; // 1 decimal
+            document.getElementById('foodCaloriesPer100').textContent = foundFood.calories;
+            document.getElementById('foodProteinPer100').textContent = foundFood.protein;
+            document.getElementById('foodCarbsPer100').textContent = foundFood.carbs;
+            document.getElementById('foodFatPer100').textContent = foundFood.fat;
+
+            // Show result with animation
+            const resultElement = document.getElementById('foodResult');
+            resultElement.style.display = 'block';
+            resultElement.style.opacity = '0';
+            resultElement.style.transform = 'translateY(20px)';
+
+            // Trigger reflow to enable animation
+            void resultElement.offsetWidth;
+
+            resultElement.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            resultElement.style.opacity = '1';
+            resultElement.style.transform = 'translateY(0)';
+
+            // Scroll to results
+            resultElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        function getUnitLabel(unit) {
+            switch(unit) {
+                case 'grams': return 'g';
+                case 'portion': return 'porção(es)';
+                case 'cup': return 'xícara(s)';
+                case 'slice': return 'fatia(s)';
+                case 'unit': return 'unidade(s)';
+                default: return 'g';
+            }
+        }
+    </script>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js');
+            });
+        }
+    </script>
+</body>
+</html>
